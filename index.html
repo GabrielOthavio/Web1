@@ -8,51 +8,128 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="media-query.css">
+    <script src="script.js"></script>
 </head>
 <body>
-    <div class="nome-aluno">
-        <h1>Login Page - responsive</h1>
-    </div>
-    <main>
+    <<main>
         <section class="login">
-            <div class="imagem">
-                <!-- Aqui vai a imagem nas CSS -->
-            </div>
             <div class="formulario">
-                <h1>Login</h1>
-                <p>Seja bem-vindo(a) novamente. Faça login para acessar sua conta e poder fazer as configurações no seu ambiente.</p>
-                <form action="login.php" method="post" autocomplete="on">
-                    <div class="campo">
-                        <i class="material-icons">person</i>
-                        <input type="email" name="login" id="ilogin" placeholder="seu e-mail" autocomplete="email" required maxlength="30">
-                        <label for="ilogin">Login</label>
+                <h1 style="text-align: center;">To do List IFPR</h1>
+                <br>
+                <div class="container py-5">
+                    <h1 class="text-center mb-4">Gerenciador de Atividades</h1>
+                    
+                    <!-- Formulário de Adicionar Atividade -->
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text" id="atividadeInput" class="form-control" placeholder="Digite sua atividade" required>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="prioridadeSelect" class="form-control" required>
+                                    <option value="alta">Alta</option>
+                                    <option value="media">Média</option>
+                                    <option value="baixa">Baixa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-success w-100" onclick="adicionarAtividade()">Adicionar</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="campo">
-                        <i class="material-icons">vpn_key</i>
-                        <input type="password" name="senha" id="isenha" placeholder="sua senha" autocomplete="current-password" required minlength="8" maxlength="20">
-                        <label for="isenha">Senha</label>
-                    </div>
-                    <input type="submit" value="Entrar">
-                    <a href="esqueci.html" class="botao">
-                        Esqueci a senha <i class="material-icons">mail</i>
-                    </a>
-                </form>
-                <div class="icons">
-                    <div class="facebook">
-                        <i data-feather="facebook"></i>
-                    </div>
-                    <div class="twitter">
-                        <i data-feather="twitter"></i>
-                    </div>
-                    <div class="instagram">
-                        <i data-feather="instagram"></i>
-                    </div>
+            
+                    <!-- Lista de Atividades -->
+                    <div id="listaAtividades"></div>
                 </div>
             </div>
         </section>
     </main>
     <script>
-        feather.replace();
+        // Função para carregar as atividades do localStorage
+        function carregarAtividades() {
+            const atividades = JSON.parse(localStorage.getItem('atividades')) || [];
+            const listaAtividades = document.getElementById('listaAtividades');
+            listaAtividades.innerHTML = '';  // Limpa a lista
+
+            atividades.forEach((atividade, index) => {
+                const divAtividade = document.createElement('div');
+                divAtividade.classList.add('atividade');
+
+                // Definir a cor de fundo com base na prioridade
+                let corDeFundo;
+                if (atividade.prioridade === 'alta') {
+                    corDeFundo = '#ffcccc';
+                } else if (atividade.prioridade === 'media') {
+                    corDeFundo = '#ffffcc';
+                } else {
+                    corDeFundo = '#ccffcc';
+                }
+                divAtividade.style.backgroundColor = corDeFundo;
+
+                divAtividade.innerHTML = `
+                    <span style="color: ${atividade.prioridade === 'alta' ? 'red' : atividade.prioridade === 'media' ? 'orange' : 'green'};">
+                        ${atividade.texto} ${atividade.concluida ? '(Concluída)' : ''}
+                    </span>
+                    <div>
+                        <button class="btn btn-warning btn-sm" onclick="editarAtividade(${index})"><i class="fas fa-edit"></i> Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="cancelarAtividade(${index})"><i class="fas fa-times"></i> Cancelar</button>
+                        <button class="btn btn-success btn-sm" onclick="concluirAtividade(${index})"><i class="fas fa-check"></i> Concluir</button>
+                    </div>
+                `;
+
+                listaAtividades.appendChild(divAtividade);
+            });
+        }
+
+        // Função para adicionar uma atividade
+        function adicionarAtividade() {
+            const atividadeInput = document.getElementById('atividadeInput');
+            const prioridadeSelect = document.getElementById('prioridadeSelect');
+            const atividadeTexto = atividadeInput.value.trim();
+            const prioridade = prioridadeSelect.value;
+
+            if (atividadeTexto === '') {
+                alert('Por favor, insira uma atividade!');
+                return;
+            }
+
+            const atividades = JSON.parse(localStorage.getItem('atividades')) || [];
+            atividades.push({ texto: atividadeTexto, prioridade: prioridade, concluida: false });
+            localStorage.setItem('atividades', JSON.stringify(atividades));
+
+            atividadeInput.value = '';  // Limpar campo após adicionar
+            carregarAtividades();  // Atualizar a lista
+        }
+
+        // Função para editar uma atividade
+        function editarAtividade(index) {
+            const atividades = JSON.parse(localStorage.getItem('atividades'));
+            const novoTexto = prompt('Editar atividade:', atividades[index].texto);
+            if (novoTexto) {
+                atividades[index].texto = novoTexto;
+                localStorage.setItem('atividades', JSON.stringify(atividades));
+                carregarAtividades();  // Atualizar a lista
+            }
+        }
+
+        // Função para concluir uma atividade
+        function concluirAtividade(index) {
+            const atividades = JSON.parse(localStorage.getItem('atividades'));
+            atividades[index].concluida = true;
+            localStorage.setItem('atividades', JSON.stringify(atividades));
+            carregarAtividades();  // Atualizar a lista
+        }
+
+        // Função para cancelar (excluir) uma atividade
+        function cancelarAtividade(index) {
+            const atividades = JSON.parse(localStorage.getItem('atividades'));
+            atividades.splice(index, 1);  // Remove a atividade do array
+            localStorage.setItem('atividades', JSON.stringify(atividades));
+            carregarAtividades();  // Atualizar a lista
+        }
+
+        // Carregar atividades ao iniciar a página
+        window.onload = carregarAtividades;
     </script>
 </body>
 </html>
